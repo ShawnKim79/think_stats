@@ -106,20 +106,46 @@ class Pregnancies(Table):
             except AttributeError:
                 pass
     
+    # 정상출산수 세기
     def BirthordCount(self, data_dir='.', n=None):
         filename = self.GetFilename()
         self.ReadFile(data_dir, filename, self.GetFields(), Pregnancy, n)
-        return self.BirthordRecode()
+        return self.BirthordRecodeCount()
     
-    def BirthordRecode(self):
-        birthord = 0
+    def BirthordRecodeCount(self):
+        first_birthord = 0
+        other_birthord = 0
         for rec in self.records:
             try:
                 if rec.birthord == 1:
-                    birthord += 1
+                    first_birthord += 1
+                else:
+                    other_birthord += 1
+
             except AttributeError:
                 pass
-        return birthord
+        return first_birthord, other_birthord
+    
+    def avg_preg_week(self, data_dir='.', n=None):
+        filename = self.GetFilename()
+        self.ReadFile(data_dir, filename, self.GetFields(), Pregnancy, n)
+        first_avg_week = 0
+        other_avg_week = 0
+        for rec in self.records:
+            try:
+                if rec.outcome != 1:
+                    continue
+                if rec.birthord == 1:
+                    first_avg_week += rec.prglength
+                else:
+                    other_avg_week += rec.prglength
+            except AttributeError:
+                pass
+        first_birthord, other_birthord = self.BirthordRecodeCount()
+        return first_avg_week/first_birthord, other_avg_week/other_birthord
+        
+
+
 
 
 def main(name, data_dir='.'):
@@ -132,6 +158,7 @@ def main(name, data_dir='.'):
     print ('Number of pregnancies :', len(preg.records))
     
     print ('birthord count :', preg.BirthordCount(data_dir))   
+    print ('avg week :', preg.avg_preg_week(data_dir))   
 
     
 if __name__ == '__main__':
